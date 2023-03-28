@@ -1,0 +1,41 @@
+name: Extract Data from Source Repository
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'source/**'
+
+jobs:
+  extract-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v2
+        with:
+          repository: <source-repo-url>
+          path: source
+
+      - name: Extract Data
+        working-directory: source # Set the working directory to the source/ directory
+        run: |
+          python <extract-script> # Replace with the name of your Python script
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git add <extracted-file> # Replace with the name of the file containing extracted data
+          git commit -m "Extracted data from source repository"
+          git push
+
+      - name: Checkout target repository
+        uses: actions/checkout@v2
+        with:
+          repository: <target-repo-url>
+          ref: main # Checkout the main branch of the target repository
+          path: target
+
+      - name: Merge changes
+        working-directory: target # Set the working directory to the target/ directory
+        run: |
+          git merge origin/main --no-edit # Merge changes from the source repository without prompting for a commit message
+          git push
